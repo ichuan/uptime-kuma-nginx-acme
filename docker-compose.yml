@@ -1,0 +1,54 @@
+version: '3.9'
+
+x-server-tune: &server-tune
+  restart: always
+  sysctls:
+    - net.core.somaxconn=65535
+  ulimits:
+    nproc: 65535
+    nofile: 500000
+
+services:
+  ui:
+    << : *server-tune
+    image: louislam/uptime-kuma
+    networks:
+      - uptime-net
+    volumes:
+      - "./data/uptime-kuma:/app/data"
+    expose:
+      - '3001'
+  web:
+    << : *server-tune
+    image: nginx
+    networks:
+      - uptime-net
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./config/nginx/conf.d:/etc/nginx/conf.d"
+      - "./config/nginx/well-known:/well-known"
+      - "./data/acme.sh:/acme.sh"
+      - "./data/nginx:/var/log/nginx"
+    labels:
+      sh.acme.autoload.domain: 'uptime'
+  acme:
+    << : *server-tune
+    image: neilpang/acme.sh
+    networks:
+      - uptime-net
+    volumes:
+      - "./data/acme.sh:/acme.sh"
+      - "./config/nginx/well-known:/fake-www/.well-known"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: daemon --home /acme.sh
+    environment:
+      DEPLOY_DOCKER_CONTAINER_LABEL: 'sh.acme.autoload.domain=uptime'
+      DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: 'service nginx reload'
+    depends_on:
+      - web
+
+networks:
+  uptime-net:

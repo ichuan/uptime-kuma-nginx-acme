@@ -1,0 +1,39 @@
+# https://ssl-config.mozilla.org/
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_name uptime.example.com;
+
+    # fake ssl (during initing)
+    ssl_certificate /etc/nginx/conf.d/fakessl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/conf.d/fakessl/privkey.pem;
+    # ssl_certificate /acme.sh/uptime.example.com/fullchain.cer;
+    # ssl_certificate_key /acme.sh/uptime.example.com/uptime.example.com.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+    ssl_session_tickets off;
+
+    # modern configuration
+    ssl_protocols TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    # HSTS (ngx_http_headers_module is required) (63072000 seconds)
+    add_header Strict-Transport-Security "max-age=63072000" always;
+
+    location /static {
+      alias /static;
+    }
+
+    location / {
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+
+        proxy_pass http://ui:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
