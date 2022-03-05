@@ -1,0 +1,27 @@
+version: '3.9'
+
+# If the base OS doesn't have:
+#   /etc/ssl/certs/ssl-cert-snakeoil.pem
+#   /etc/ssl/private/ssl-cert-snakeoil.key
+# Then generate them with:
+#   openssl req  -new -x509 -days 3650 -nodes -sha256 -out /etc/ssl/certs/ssl-cert-snakeoil.pem -keyout /etc/ssl/private/ssl-cert-snakeoil.key
+
+services:
+  smtp:
+    image: alterrebe/postfix-relay
+    networks:
+      - uptime-net
+    ports:
+      - '25:25'
+    restart: always
+    volumes:
+      - /etc/ssl:/etc/ssl:ro
+      - /usr/share/ssl:/usr/share/ssl:ro
+      - /usr/share/ca-certificates:/usr/share/ca-certificates:ro
+    environment:
+      RELAY_HOST_NAME: relayhost
+      EXT_RELAY_HOST: "[smtp.sendgrid.net]"
+      EXT_RELAY_PORT: 587
+      SMTP_LOGIN: "apikey"
+      SMTP_PASSWORD: "--YOUR_SENDGRID_API_KEY--"
+      USE_TLS: "yes"

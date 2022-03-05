@@ -15,6 +15,17 @@ Assume your domain is `uptime.mysite.com`.
 - Stop it: `docker-compose down`
 
 
+## Adding SMTP relay support
+
+To send notifications via SMTP you can use a local Postfix working as relay. You'll also
+need a service like Sendgrid, AWS SES or similar to do the final delivery.
+
+To use the local SMTP you'll have to:
+
+- Create the local docker compose override: `cp docker-compose.override.yml.example docker-compose.override.yml`
+- Configure it with your relay host credentials, see: [https://hub.docker.com/r/alterrebe/postfix-relay/](https://hub.docker.com/r/alterrebe/postfix-relay/)
+- Setup the uptime-kuma Email (SMTP) notification using `smtp` as Hostname, Port `25`, no security and no username/password
+
 ## Start
 
 ```
