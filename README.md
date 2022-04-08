@@ -12,6 +12,7 @@ Assume your domain is `uptime.mysite.com`.
 - Initial start: `docker-compose up -d`
 - Getting certs: `docker-compose exec acme --issue -d uptime.mysite.com --webroot /fake-www --server letsencrypt`
 - Comment out fake ssl config (and uncomment the real ones) in `config/nginx/conf.d/web.conf`
+- Deploy certs: `docker-compose exec acme --deploy -d uptime.mysite.com --deploy-hook docker`
 - Stop it: `docker-compose down`
 
 
